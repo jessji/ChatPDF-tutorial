@@ -1,0 +1,6 @@
+langchain
+openai
+pypdf
+streamlit
+chromadb
+# pinecone-client
