@@ -42,7 +42,7 @@ index_name = "my-knowledgebase"
 # 情况1：如果还没有建立该知识库的向量索引Index，需新建
 #################################################
 
-texts = load_and_split("data/llm-labor-market-impact-sample.pdf")
+texts = load_and_split("data/data.pdf") # 替换成你的文件
 
 embeddings = OpenAIEmbeddings()
 
