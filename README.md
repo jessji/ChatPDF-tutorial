@@ -16,6 +16,6 @@ export OPENAI_API_KEY='sk-...'
 将`data`文件夹中的文件替换成你的文件。
 
 ```
-> streamlit run personal_assistant.py
+> streamlit run ChatPDF.py
 ```
 在网页对话框中输入你的问题，按回车键发送，就可以得到答案。

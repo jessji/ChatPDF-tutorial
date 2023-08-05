@@ -31,58 +31,56 @@ def load_and_split(path: str):
     return texts
 
 
-##############################
-# 第一部分：向量数据库操作
-##############################
+##########################################
+# 第一部分：向量数据库操作（用Chroma或Pinecone）
+##########################################
 
-# 从向量数据库向量索引Index，用于用户问答
-index_name = "my-knowledgebase"
-
-#################################################
-# 情况1：如果还没有建立该知识库的向量索引Index，需新建
-#################################################
-
-texts = load_and_split("data/data.pdf") # 替换成你的文件
+#########################
+# 方式一：用Chroma向量数据库
+#########################
 
 embeddings = OpenAIEmbeddings()
-
-# 方法1: 用Chroma向量数据库
 persist_directory = "db"
-vectordb = Chroma.from_texts(documents=texts, embedding=embeddings, persist_directory=persist_directory)
+
+# 情况1: 首次新建向量数据库（只需运行一次）
+texts = load_and_split("data/data.pdf") # 替换成你的文件
+vectordb = Chroma.from_texts(texts=[t.page_content for t in texts], embedding=embeddings, persist_directory=persist_directory)
 vectordb.persist()
 
-# # 方法2: 用Pinecone向量数据库
+# # 情况2: 已建向量数据库，直接加载
+# vectordb = Chroma(embedding_function=embeddings, persist_directory=persist_directory)
+
+###########################
+# 方式二：用Pinecone向量数据库
+###########################
+
+# index_name = "my-knowledgebase"
+# embeddings = OpenAIEmbeddings()
+
+# # 情况1: 首次新建向量数据库（只需运行一次）
+# texts = load_and_split("data/data.pdf") # 替换成你的文件
 # pinecone.init(
 #     api_key=PINECONE_API_KEY, # 在 app.pinecone.io 的“API Keys”页面查看
 #     environment=PINECONE_API_ENV # 在api key旁边
 # )
 # if index_name not in pinecone.list_indexes():
-#     # we create a new index
 #     pinecone.create_index(
 #       name=index_name,
 #       metric='cosine',
 #       dimension=1536
 # )
-# # 将texts转化为向量(vectors)并存入pinecone Index中
+# # 将texts转化为向量(vectors)并存入向量数据库中
 # vectordb = Pinecone.from_texts([t.page_content for t in texts], embeddings, index_name=index_name) # 填入你的pinecone index名称
 # print("***已完成vectors更新插入(upsert)***")
 
-###################################
-# 情况2：如果已经建立向量索引，则直接加载
-###################################
-
-# # 从Pinecone向量数据库加载向量索引Index
+# # 情况2: 已建向量数据库，直接加载
 # pinecone.init(
 #     api_key=PINECONE_API_KEY, # 在 app.pinecone.io 的“API Keys”页面查看
 #     environment=PINECONE_API_ENV # 在api key旁边
 # )
 # vectordb = Pinecone.from_existing_index(index_name, OpenAIEmbeddings())
 
-######################################
-# 情况3：添加新的数据 (texts)至已有的Index
-######################################
-
-# # 添加新的texts到Pinecone向量数据库
+# # 情况3: 添加新的数据到向量数据库
 # new_texts = ""
 # index = pinecone.Index(index_name)
 # # 初始化pinecone
@@ -99,10 +97,10 @@ vectordb.persist()
 #################
 
 # 用streamlit生成web界面
-st.title('ChatPDF')
-user_input = st.text_input('请输入您的问题')
+st.title('ChatPDF') # 设置标题
+user_input = st.text_input('请输入您的问题') #设置输入框的默认问题
 
-# 根据用户数据，生成回复
+# 根据用户输入，生成回复
 if user_input:
     print(f"用户输入：{user_input}")
     # 根据用户输入，从向量数据库搜索得到相似度最高的texts
@@ -123,13 +121,14 @@ if user_input:
 
     st.write(answer)
 
-    texts_length = 0
-    st.write("==============================以下为测试打印数据，可忽略==============================")
-    st.write(f"以下是相关度最高的【{len(most_relevant_texts)}】段文本：")
-    i = 0
-    for t in most_relevant_texts:
-        i += 1
-        st.write(f"********第【{i}】段********")
-        st.write(t.page_content)
-        texts_length += len(t.page_content)
-    print(f"请求字段长度为：{texts_length}")
+    # # 显示找到的相关度最高的k段文本
+    # texts_length = 0
+    # st.write("==============================以下为测试打印数据，可忽略==============================")
+    # st.write(f"以下是相关度最高的【{len(most_relevant_texts)}】段文本：")
+    # i = 0
+    # for t in most_relevant_texts:
+    #     i += 1
+    #     st.write(f"********第【{i}】段********")
+    #     st.write(t.page_content)
+    #     texts_length += len(t.page_content)
+    # print(f"请求字段长度为：{texts_length}")
